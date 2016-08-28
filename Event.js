@@ -9,6 +9,10 @@ class Event {
     if (!this.id) {
       this.id = uuid.v4();
     }
+
+    if (!this.time) {
+      this.time = Date.now();
+    }
   }
 
   toObject() {

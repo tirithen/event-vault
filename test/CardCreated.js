@@ -13,11 +13,11 @@ describe('CardCreated', () => {
 
   describe('#resolve', () => {
     it('should return plain data object', () => {
-      const world = new Map();
+      const projection = new Projection();
       const store = new EventStore();
       const cardCreated = new CardCreated({ name: 'Anna' });
       store.add(cardCreated);
-      store.projectOn(world);
+      store.projectOn(projection);
     });
   });
 });
