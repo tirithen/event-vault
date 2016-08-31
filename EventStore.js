@@ -8,7 +8,7 @@ class EventStore {
     this.events = [];
   }
 
-  add(event) {
+  append(event) {
     if (!(event instanceof Event)) {
       throw new Error('Must be instance of Event');
     }
@@ -16,13 +16,20 @@ class EventStore {
     this.events.push(event);
   }
 
-  project(endTime = Date.now(), projection) {
-    if (projection && !(projection instanceof Projection)) {
+  project(endTime = Date.now(), projection = new Projection()) {
+    if (!(projection instanceof Projection)) {
       throw new Error('Second argument must be instance of Projection');
-    } else if (!projection) {
-      projection = new Projection();
     }
 
+    const lastEventTime = projection.getLastEventTime();
+    for (let i = 0; i < this.events.length; i++) {
+      const event = this.events[i];
+      if (event.time > lastEventTime && event.time < endTime) {
+        projection.append(event);
+      }
+    }
+
+    return projection;
   }
 }
 

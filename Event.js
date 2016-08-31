@@ -1,4 +1,4 @@
-const uuid = require('uuid');
+let eventCounter = 1;
 
 class Event {
   constructor(options = {}) {
@@ -7,12 +7,16 @@ class Event {
     });
 
     if (!this.id) {
-      this.id = uuid.v4();
+      this.id = eventCounter++;
     }
 
     if (!this.time) {
       this.time = Date.now();
     }
+  }
+
+  resolve() {
+    throw new Error('Must be implemented by extending class');
   }
 
   toObject() {

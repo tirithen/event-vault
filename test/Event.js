@@ -1,8 +1,8 @@
 /* global describe, it */
 
+// TODO: make ids incremental, that makes it easy to make sure no event has been dropped!
 const assert = require('assert');
 const Event = require('../Event');
-const CardCreated = require('./fixtures/events/CardCreated');
 
 describe('Event', () => {
   it('should be instanceable', () => {
@@ -17,17 +17,33 @@ describe('Event', () => {
     assert.equal(event.nonExistentProperty, undefined);
   });
 
-  it('should get a unique id automatically', () => {
+  it('should automatically get an incremental id', () => {
     const event = new Event();
-    assert.equal(/\w+\-\w+\-\w+\-\w+\-\w+/.test(event.id), true);
+    assert.equal(typeof event.id, 'number');
+    assert.equal(event.id > 0, true);
+  });
+
+  describe('#resolve', () => {
+    it('should throw error when not implemented by extending class', () => {
+      const event = new Event();
+      assert.throws(() => {
+        event.resolve();
+      }, Error);
+    });
   });
 
   describe('#toObject', () => {
     it('should return plain data object', () => {
       const event = new Event({ name: 'Anna', favoriteColor: 'green' });
       const data = event.toObject();
-      assert.equal(Object.keys(data).length, 3);
-      assert.equal(/\w+\-\w+\-\w+\-\w+\-\w+/.test(data.id), true);
+      assert.equal(Object.keys(data).length, 4);
+      assert.equal(typeof data.time, 'number');
+      assert.equal(data.time > 0, true);
+      assert.doesNotThrow(() => {
+        const date = new Date(data.time);
+        assert.equal(date.getTime(), data.time);
+      }, Error);
+      assert.equal(typeof data.id, 'number');
       assert.equal(data.name, 'Anna');
       assert.equal(data.favoriteColor, 'green');
     });

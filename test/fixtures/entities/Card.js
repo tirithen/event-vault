@@ -1,6 +1,8 @@
-class Card {
-  constructor(name) {
-    this.name = name;
+const Entity = require('../../../Entity');
+
+class Card extends Entity {
+  constructor(options = {}) {
+    super(options);
   }
 }
 
