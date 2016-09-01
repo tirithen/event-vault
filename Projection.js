@@ -19,6 +19,10 @@ class Projection {
     return this.entities.get(key);
   }
 
+  delete(key) {
+    this.entities.delete(key);
+  }
+
   append(event) {
     if (!(event instanceof Event)) {
       throw new Error('Must be instance of Event');
