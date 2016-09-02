@@ -15,7 +15,7 @@
     "url": "git+https://github.com/tirithen/event-sourcing-experiment.git"
   },
   "author": "Fredrik Söderström <tirithen@gmail.com>",
-  "license": "GPLv3",
+  "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/tirithen/event-sourcing-experiment/issues"
   },
