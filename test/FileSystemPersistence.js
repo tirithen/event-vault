@@ -11,36 +11,38 @@ describe('FileSystemPersistence', () => {
   });
 
   describe('#load', () => {
-    it('should fail to load non existent data file', (done) => {
+    it('should not fail to load non existent data file', (done) => {
       const persistence = new FileSystemPersistence();
-      persistence.load().then(() => {}, (error) => {
-        assert.equal(error instanceof Error, true);
-        assert.equal(error.code, 'ENOENT');
-        done();
-      });
+      persistence.load().then(done, done);
     });
 
     it('should load persisted Events', (done) => {
       const persistence = new FileSystemPersistence('shouldLoadPersistedEvents');
-      persistence.clear();
-      Promise.all([
-        persistence.append(new CardCreated({ name: 'Lion' })),
-        persistence.append(new CardCreated({ name: 'Rabbit' })),
-        persistence.append(new CardCreated({ name: 'Goose' }))
-      ]).then(() => {
-        const persistence2 = new FileSystemPersistence('shouldLoadPersistedEvents');
-        const namesToLookup = ['Lion', 'Rabbit', 'Goose'];
-        let loadedCount = 0;
-        persistence2.load((data) => {
-          assert.equal(data.class, 'CardCreated');
-          assert.equal(typeof data.id, 'number');
-          const index = namesToLookup.indexOf(data.name);
-          assert.equal(index > -1, true);
-          assert.equal(data.name, namesToLookup[index]);
-          loadedCount += 1;
-        }).then(() => {
-          assert.equal(loadedCount, 3);
-          done();
+      persistence.clear().then(() => {
+        Promise.all([
+          persistence.append(new CardCreated({ name: 'Lion' })),
+          persistence.append(new CardCreated({ name: 'Rabbit' })),
+          persistence.append(new CardCreated({ name: 'Goose' }))
+        ]).then(() => {
+          const eventConstructors = new Map();
+          eventConstructors.set('CardCreated', CardCreated);
+          const persistence2 = new FileSystemPersistence(
+            persistence.id,
+            eventConstructors
+          );
+          const namesToLookup = ['Lion', 'Rabbit', 'Goose'];
+          let loadedCount = 0;
+          persistence2.load((data) => {
+            assert.equal(data.constructor.name, 'CardCreated');
+            assert.equal(typeof data.id, 'number');
+            const index = namesToLookup.indexOf(data.name);
+            assert.equal(index > -1, true);
+            assert.equal(data.name, namesToLookup[index]);
+            loadedCount += 1;
+          }).then(() => {
+            assert.equal(loadedCount, 3);
+            persistence2.clear().then(done, done);
+          }, done);
         }, done);
       }, done);
     });

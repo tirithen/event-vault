@@ -12,7 +12,9 @@ class FileSystemPersistence extends Persistence {
       let readError;
 
       readStream.on('error', (error) => {
-        readError = error;
+        if (error.code !== 'ENOENT') {
+          readError = error;
+        }
         reader.close();
       });
 
@@ -20,7 +22,15 @@ class FileSystemPersistence extends Persistence {
         try {
           if (line && line.trim()) {
             const data = JSON.parse(line);
-            loadCallback(data);
+            const className = data.class;
+            delete data.class;
+
+            const EventConstructor = this.supportedEventConstructors.get(className);
+            if (!EventConstructor) {
+              throw new Error(`The event constructor ${className} could not be found`);
+            }
+
+            loadCallback(new EventConstructor(data));
           }
         } catch (error) {
           readError = error;

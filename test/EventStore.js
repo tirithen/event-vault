@@ -5,7 +5,6 @@ const Event = require('../Event');
 const EventStore = require('../EventStore');
 const FileSystemPersistence = require('../FileSystemPersistence');
 const CardCreated = require('./fixtures/events/CardCreated');
-const Card = require('./fixtures/entities/Card');
 
 describe('EventStore', () => {
   it('should be instanceable without second parameter', () => {
@@ -13,11 +12,11 @@ describe('EventStore', () => {
     assert.equal(store instanceof EventStore, true);
   });
 
-  it('should not be instanceable if second parameter is not instance of Persistence', () => {
-    assert.throws(() => {
-      const store = new EventStore('myid', new Date());
-      store.project(); // To fix unused linting
-    }, Error);
+  it('should be instanceable with persistence', () => {
+    const eventConstructors = new Map();
+    eventConstructors.set('CardCreated', CardCreated);
+    const store = new EventStore('myid', new FileSystemPersistence(), eventConstructors);
+    assert.equal(store instanceof EventStore, true);
   });
 
   it('should get a unique id automatically', () => {
@@ -26,48 +25,157 @@ describe('EventStore', () => {
   });
 
   describe('#append', () => {
-    it('should append an event to the event store', () => {
+    it('should append an event to a event store without persistence', (done) => {
       const store = new EventStore();
       const event = new Event();
-      store.append(event);
-      assert.equal(store.events.length, 1);
-      assert.equal(store.events[0], event);
+      store.append(event).then(() => {
+        assert.equal(store.events.length, 1);
+        assert.equal(store.events[0], event);
+        done();
+      }, done);
+    });
+
+    it('should append an event to a event store with persistence', (done) => {
+      const store = new EventStore(
+        'shouldAppendToEventStoreWithPersistence',
+        FileSystemPersistence
+      );
+      store.clear().then(() => {
+        const event = new Event();
+        store.append(event).then(() => {
+          assert.equal(store.events.length, 1);
+          assert.equal(store.events[0], event);
+          const eventConstructors = new Map();
+          eventConstructors.set('Event', Event);
+          const store2 = new EventStore(store.id, FileSystemPersistence, eventConstructors);
+          store2.load().then(() => {
+            assert.equal(store2.events.length, 1);
+            assert.equal(store2.events[0] instanceof Event, true);
+            store2.clear().then(done, done);
+          }, done);
+        }, done);
+      }, done);
+    });
+
+    it('should append only to the event store and not to persistence with parameter', (done) => {
+      const store = new EventStore(
+        'shouldAppendOnlyToEventStoreWithoutPersistence',
+        FileSystemPersistence
+      );
+      store.clear().then(() => {
+        const event = new Event();
+        store.append(event, true).then(() => {
+          assert.equal(store.events.length, 1);
+          assert.equal(store.events[0], event);
+          const eventConstructors = new Map();
+          eventConstructors.set('Event', Event);
+          const store2 = new EventStore(store.id, FileSystemPersistence, eventConstructors);
+          store2.load().then(() => {
+            assert.equal(store2.events.length, 0);
+            store2.clear().then(done, done);
+          }, done);
+        }, done);
+      }, done);
     });
 
     it('should not accept non Event instances', () => {
       const store = new EventStore();
       assert.throws(() => {
-        store.append('test');
+        store.append('should');
       }, Error);
     });
   });
 
-  describe.only('#load', () => {
-    it('should load events from persistence', (done) => {
-      const store = new EventStore('testLoadWithPersistence', FileSystemPersistence);
-      Promise.all([
-        store.append(new CardCreated({ id: 'arneCard', name: 'Arne', time: 10 })),
-        store.append(new CardCreated({ id: 'gretheCard', name: 'Grethe', time: 30 })),
-        store.append(new CardCreated({ id: 'lizzCard', name: 'Lizz', time: 50 })),
-        store.append(new CardCreated({ id: 'lenaCard', name: 'Lena', time: 100 }))
-      ]).then(() => {
-        const store2 = new EventStore('testLoadWithPersistence', FileSystemPersistence);
-        store2.load().then(() => {
-          assert.equal(store2.get('arneCard') instanceof Card, true);
-          assert.equal(store2.get('gretheCard') instanceof Card, true);
-          assert.equal(store2.get('lizzCard') instanceof Card, true);
-          assert.equal(store2.get('lenaCard') instanceof Card, true);
-          assert.equal(store2.get('arneCard').name, 'Arne');
-          assert.equal(store2.get('gretheCard').name, 'Grethe');
-          assert.equal(store2.get('lizzCard').name, 'Lizz');
-          assert.equal(store2.get('lenaCard').name, 'Lena');
+  describe('#clear', () => {
+    it('should clear the event store and persistence', (done) => {
+      const store = new EventStore('shouldClearWithPersistence', FileSystemPersistence);
+      store.append(new CardCreated({ id: 'lottaCard', name: 'Lotta', time: 10 })).then(() => {
+        store.clear().then(() => {
+          assert.equal(store.events.length, 0);
           done();
         }, done);
       }, done);
     });
 
-    it('should throw error id persistence object is missing on event store', () => {
-      assert.equal(false, true);
+    it('should clear only the event store and not persistence with parameter', (done) => {
+      const eventConstructors = new Map();
+      eventConstructors.set('CardCreated', CardCreated);
+      const store = new EventStore(
+        'shouldClearWithoutPersistence',
+        FileSystemPersistence,
+        eventConstructors
+      );
+      store.clear().then(() => {
+        store.append(new CardCreated({ id: 'lottaCard', name: 'Lotta', time: 10 })).then(() => {
+          store.clear(true).then(() => {
+            assert.equal(store.events.length, 0);
+            store.load().then(() => {
+              assert.equal(store.events.length, 1);
+              store.clear().then(done, done);
+            }, done);
+          }, done);
+        }, done);
+      }, done);
+    });
+  });
+
+  describe('#load', () => {
+    it('should load events from persistence', (done) => {
+      const store = new EventStore('shouldLoadWithPersistence', FileSystemPersistence);
+      store.clear().then(() => {
+        Promise.all([
+          store.append(new CardCreated({ id: 'arneCard', name: 'Arne' })),
+          store.append(new CardCreated({ id: 'gretheCard', name: 'Grethe' })),
+          store.append(new CardCreated({ id: 'lizzCard', name: 'Lizz' })),
+          store.append(new CardCreated({ id: 'lenaCard', name: 'Lena' }))
+        ]).then(() => {
+          const eventConstructors = new Map();
+          eventConstructors.set('CardCreated', CardCreated);
+          const store2 = new EventStore(
+            store.id,
+            FileSystemPersistence,
+            eventConstructors
+          );
+          store2.load().then(() => {
+            assert.equal(store2.events.length, 4);
+            const expectedData = {
+              arneCard: 'Arne',
+              gretheCard: 'Grethe',
+              lizzCard: 'Lizz',
+              lenaCard: 'Lena'
+            };
+            store2.events.forEach((event) => {
+              assert.equal(event instanceof CardCreated, true);
+              assert.equal(typeof expectedData[event.id], 'string');
+              assert.equal(event.name, expectedData[event.id]);
+              delete expectedData[event.id];
+            });
+            store2.clear().then(done, done);
+          }, done);
+        }, done);
+      }, done);
+    });
+
+    it('should reject if persistence object is missing on event store', (done) => {
+      const store = new EventStore();
+      store.load().then(undefined, (error) => {
+        assert.equal(error instanceof Error, true);
+        done();
+      });
+    });
+
+    it('should reject if event constructor is missing in event store', (done) => {
+      const store = new EventStore('shouldLoadWithPersistence', FileSystemPersistence);
+      store.clear().then(() => {
+        store.append(new CardCreated({ name: 'Göran' })).then(() => {
+          const store2 = new EventStore(store.id, FileSystemPersistence, new Map());
+          store2.load().then(undefined, (error) => {
+            assert.equal(error instanceof Error, true);
+            assert.equal(store2.events.length, 0);
+            store2.clear().then(done, done);
+          });
+        }, done);
+      }, done);
     });
   });
 

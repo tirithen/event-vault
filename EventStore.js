@@ -5,45 +5,61 @@ const Projection = require('./Projection');
 const Persistence = require('./Persistence');
 
 class EventStore extends EventEmitter {
-  constructor(id, PersistenceConstructor) {
+  constructor(id, PersistenceConstructor, eventConstructors = new Map()) {
     super();
 
     this.id = id || uuid.v4();
+    this.events = [];
+    this.eventConstructors = eventConstructors;
 
     if (PersistenceConstructor instanceof Function) {
-      this.persistence = new PersistenceConstructor(this.id);
+      this.persistence = new PersistenceConstructor(this.id, eventConstructors);
+      if (!(this.persistence instanceof Persistence)) {
+        throw new Error('Second argument must be a constructor that inherits from Persistence');
+      }
     }
-
-    if (PersistenceConstructor && !(this.persistence instanceof Persistence)) {
-      throw new Error('Second argument must be a constructor that inherits from Persistence');
-    }
-
-    this.events = [];
   }
 
   load() {
-    if (!(this.persistence instanceof Persistence)) {
-      throw new Error('Unable to load with no persistence object assigned to event store');
-    }
-
-    return this.persistence.load((event) => {
-      sss
-    }).then(resolve, reject);
+    return new Promise((resolve, reject) => {
+      if (!(this.persistence instanceof Persistence)) {
+        reject(new Error('Unable to load with no persistence object assigned to event store'));
+      } else {
+        this.clear(true).then(() => {
+          this.persistence.load((event) => {
+            this.append(event, true);
+          }).then(resolve, reject);
+        }, reject);
+      }
+    });
   }
 
-  append(event) {
+  append(event, withoutPersist = false) {
     if (!(event instanceof Event)) {
       throw new Error('Must be instance of Event');
     }
 
     this.events.push(event);
 
-    if (this.persistence) {
-      // TODO: Handle error properly
-      this.persistence.append(event).then(undefined, (error) => {
-        throw error;
-      });
-    }
+    return new Promise((resolve, reject) => {
+      if (!withoutPersist && this.persistence instanceof Persistence) {
+        this.persistence.append(event).then(resolve, reject);
+      } else {
+        resolve();
+      }
+    });
+  }
+
+  clear(withoutPersist = false) {
+    this.events.length = 0;
+
+    return new Promise((resolve, reject) => {
+      if (!withoutPersist && this.persistence instanceof Persistence) {
+        this.persistence.clear().then(resolve, reject);
+      } else {
+        resolve();
+      }
+    });
   }
 
   project(endTime = Date.now(), projection = new Projection()) {

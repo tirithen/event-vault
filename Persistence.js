@@ -7,8 +7,9 @@ function retrunFailingPromise() {
 }
 
 class Persistence {
-  constructor(id) {
+  constructor(id, supportedEventConstructors = new Map()) {
     this.id = id || uuid.v4();
+    this.supportedEventConstructors = supportedEventConstructors;
   }
 
   load() {
