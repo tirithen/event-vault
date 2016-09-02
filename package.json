@@ -24,6 +24,7 @@
     "mocha": "^3.0.2"
   },
   "dependencies": {
+    "mkdirp": "^0.5.1",
     "uuid": "^2.0.2"
   }
 }

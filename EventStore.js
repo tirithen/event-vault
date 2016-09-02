@@ -1,11 +1,17 @@
 const uuid = require('uuid');
+const EventEmitter = require('events');
 const Event = require('./Event');
 const Projection = require('./Projection');
 
-class EventStore {
+class EventStore extends EventEmitter {
   constructor(id) {
+    super();
     this.id = id || uuid.v4();
     this.events = [];
+  }
+
+  load() {
+
   }
 
   append(event) {

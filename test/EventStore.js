@@ -33,6 +33,12 @@ describe('EventStore', () => {
     });
   });
 
+  describe('#load', () => {
+    it.skip('should load events from persistence', () => {
+      assert.equal(false, true);
+    });
+  });
+
   describe('#project', () => {
     const store = new EventStore();
     store.append(new CardCreated({ name: 'Arne', time: 10 }));
