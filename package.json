@@ -2,7 +2,7 @@
   "name": "event-sourcing-experiment",
   "version": "1.0.0",
   "description": "",
-  "main": "Event.js",
+  "main": "EventStore.js",
   "directories": {
     "test": "test"
   },
