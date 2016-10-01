@@ -23,7 +23,7 @@ class EventVault extends EventEmitter {
   load() {
     return new Promise((resolve, reject) => {
       if (!(this.persistence instanceof Persistence)) {
-        reject(new Error('Unable to load with no persistence object assigned to event store'));
+        reject(new Error('Unable to load with no persistence object assigned to event vault'));
       } else {
         this.clear(true).then(() => {
           this.persistence.load((event) => {
