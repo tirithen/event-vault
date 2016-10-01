@@ -36,7 +36,7 @@ class Projection {
 
     for (let i = 0; i < this.events.length; i++) {
       const event = this.events[i];
-      if (event.id === id) {
+      if (event.__id === id) {
         result = event;
         break;
       }

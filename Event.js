@@ -6,8 +6,8 @@ class Event {
       this[key] = options[key];
     });
 
-    if (!this.id) {
-      this.id = eventCounter++;
+    if (!this.__id) {
+      this.__id = eventCounter++;
     }
 
     if (!this.time) {

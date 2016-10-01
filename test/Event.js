@@ -1,6 +1,5 @@
 /* global describe, it */
 
-// TODO: make ids incremental, that makes it easy to make sure no event has been dropped!
 const assert = require('assert');
 const Event = require('../Event');
 
@@ -19,8 +18,8 @@ describe('Event', () => {
 
   it('should automatically get an incremental id', () => {
     const event = new Event();
-    assert.equal(typeof event.id, 'number');
-    assert.equal(event.id > 0, true);
+    assert.equal(typeof event.__id, 'number');
+    assert.equal(event.__id > 0, true);
   });
 
   describe('#resolve', () => {
@@ -43,7 +42,7 @@ describe('Event', () => {
         const date = new Date(data.time);
         assert.equal(date.getTime(), data.time);
       }, Error);
-      assert.equal(typeof data.id, 'number');
+      assert.equal(typeof data.__id, 'number');
       assert.equal(data.name, 'Anna');
       assert.equal(data.favoriteColor, 'green');
     });

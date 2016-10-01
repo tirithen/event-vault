@@ -34,7 +34,7 @@ describe('FileSystemPersistence', () => {
           let loadedCount = 0;
           persistence2.load((data) => {
             assert.equal(data.constructor.name, 'CardCreated');
-            assert.equal(typeof data.id, 'number');
+            assert.equal(typeof data.__id, 'number');
             const index = namesToLookup.indexOf(data.name);
             assert.equal(index > -1, true);
             assert.equal(data.name, namesToLookup[index]);

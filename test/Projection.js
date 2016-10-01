@@ -48,7 +48,7 @@ describe('Projection', () => {
       const event = new CardCreated({ name: 'Love' });
       projection.append(event);
       assert.equal(projection.events.length, 1);
-      assert.equal(projection.getEventById(event.id).name, 'Love');
+      assert.equal(projection.getEventById(event.__id).name, 'Love');
     });
 
     it('should not be possible to append non event instances', () => {
@@ -78,8 +78,8 @@ describe('Projection', () => {
       const event3 = new CardCreated({ name: 'Peter' });
       projection.append(event3);
       assert.equal(projection.events.length, 3);
-      assert.equal(projection.getEventById(event2.id) instanceof CardCreated, true);
-      assert.equal(projection.getEventById(event2.id).name, 'Kalle');
+      assert.equal(projection.getEventById(event2.__id) instanceof CardCreated, true);
+      assert.equal(projection.getEventById(event2.__id).name, 'Kalle');
     });
   });
 
