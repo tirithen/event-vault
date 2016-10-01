@@ -1,8 +1,8 @@
 {
-  "name": "event-sourcing-experiment",
+  "name": "event-vault",
   "version": "1.0.0",
   "description": "",
-  "main": "EventStore.js",
+  "main": "EventVault.js",
   "directories": {
     "test": "test"
   },
@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tirithen/event-sourcing-experiment.git"
+    "url": "git+https://github.com/tirithen/event-vault.git"
   },
   "author": "Fredrik Söderström <tirithen@gmail.com>",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/tirithen/event-sourcing-experiment/issues"
+    "url": "https://github.com/tirithen/event-vault/issues"
   },
-  "homepage": "https://github.com/tirithen/event-sourcing-experiment#readme",
+  "homepage": "https://github.com/tirithen/event-vault#readme",
   "devDependencies": {
     "istanbul": "^0.4.5",
     "mocha": "^3.0.2"

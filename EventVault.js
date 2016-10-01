@@ -4,7 +4,7 @@ const Event = require('./Event');
 const Projection = require('./Projection');
 const Persistence = require('./Persistence');
 
-class EventStore extends EventEmitter {
+class EventVault extends EventEmitter {
   constructor(id, PersistenceConstructor, eventConstructors = new Map()) {
     super();
 
@@ -79,4 +79,4 @@ class EventStore extends EventEmitter {
   }
 }
 
-module.exports = EventStore;
+module.exports = EventVault;

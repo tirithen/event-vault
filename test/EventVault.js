@@ -2,31 +2,31 @@
 
 const assert = require('assert');
 const Event = require('../Event');
-const EventStore = require('../EventStore');
+const EventVault = require('../EventVault');
 const FileSystemPersistence = require('../FileSystemPersistence');
 const CardCreated = require('./fixtures/events/CardCreated');
 
-describe('EventStore', () => {
+describe('EventVault', () => {
   it('should be instanceable without second parameter', () => {
-    const store = new EventStore();
-    assert.equal(store instanceof EventStore, true);
+    const store = new EventVault();
+    assert.equal(store instanceof EventVault, true);
   });
 
   it('should be instanceable with persistence', () => {
     const eventConstructors = new Map();
     eventConstructors.set('CardCreated', CardCreated);
-    const store = new EventStore('myid', new FileSystemPersistence(), eventConstructors);
-    assert.equal(store instanceof EventStore, true);
+    const store = new EventVault('myid', new FileSystemPersistence(), eventConstructors);
+    assert.equal(store instanceof EventVault, true);
   });
 
   it('should get a unique id automatically', () => {
-    const store = new EventStore();
+    const store = new EventVault();
     assert.equal(/\w+\-\w+\-\w+\-\w+\-\w+/.test(store.id), true);
   });
 
   describe('#append', () => {
     it('should append an event to a event store without persistence', (done) => {
-      const store = new EventStore();
+      const store = new EventVault();
       const event = new Event();
       store.append(event).then(() => {
         assert.equal(store.events.length, 1);
@@ -36,8 +36,8 @@ describe('EventStore', () => {
     });
 
     it('should append an event to a event store with persistence', (done) => {
-      const store = new EventStore(
-        'shouldAppendToEventStoreWithPersistence',
+      const store = new EventVault(
+        'shouldAppendToEventVaultWithPersistence',
         FileSystemPersistence
       );
       store.clear().then(() => {
@@ -47,7 +47,7 @@ describe('EventStore', () => {
           assert.equal(store.events[0], event);
           const eventConstructors = new Map();
           eventConstructors.set('Event', Event);
-          const store2 = new EventStore(store.id, FileSystemPersistence, eventConstructors);
+          const store2 = new EventVault(store.id, FileSystemPersistence, eventConstructors);
           store2.load().then(() => {
             assert.equal(store2.events.length, 1);
             assert.equal(store2.events[0] instanceof Event, true);
@@ -58,8 +58,8 @@ describe('EventStore', () => {
     });
 
     it('should append only to the event store and not to persistence with parameter', (done) => {
-      const store = new EventStore(
-        'shouldAppendOnlyToEventStoreWithoutPersistence',
+      const store = new EventVault(
+        'shouldAppendOnlyToEventVaultWithoutPersistence',
         FileSystemPersistence
       );
       store.clear().then(() => {
@@ -69,7 +69,7 @@ describe('EventStore', () => {
           assert.equal(store.events[0], event);
           const eventConstructors = new Map();
           eventConstructors.set('Event', Event);
-          const store2 = new EventStore(store.id, FileSystemPersistence, eventConstructors);
+          const store2 = new EventVault(store.id, FileSystemPersistence, eventConstructors);
           store2.load().then(() => {
             assert.equal(store2.events.length, 0);
             store2.clear().then(done, done);
@@ -79,7 +79,7 @@ describe('EventStore', () => {
     });
 
     it('should not accept non Event instances', () => {
-      const store = new EventStore();
+      const store = new EventVault();
       assert.throws(() => {
         store.append('should');
       }, Error);
@@ -88,7 +88,7 @@ describe('EventStore', () => {
 
   describe('#clear', () => {
     it('should clear the event store and persistence', (done) => {
-      const store = new EventStore('shouldClearWithPersistence', FileSystemPersistence);
+      const store = new EventVault('shouldClearWithPersistence', FileSystemPersistence);
       store.append(new CardCreated({ id: 'lottaCard', name: 'Lotta', time: 10 })).then(() => {
         store.clear().then(() => {
           assert.equal(store.events.length, 0);
@@ -100,7 +100,7 @@ describe('EventStore', () => {
     it('should clear only the event store and not persistence with parameter', (done) => {
       const eventConstructors = new Map();
       eventConstructors.set('CardCreated', CardCreated);
-      const store = new EventStore(
+      const store = new EventVault(
         'shouldClearWithoutPersistence',
         FileSystemPersistence,
         eventConstructors
@@ -121,7 +121,7 @@ describe('EventStore', () => {
 
   describe('#load', () => {
     it('should load events from persistence', (done) => {
-      const store = new EventStore('shouldLoadWithPersistence', FileSystemPersistence);
+      const store = new EventVault('shouldLoadWithPersistence', FileSystemPersistence);
       store.clear().then(() => {
         Promise.all([
           store.append(new CardCreated({ id: 'arneCard', name: 'Arne' })),
@@ -131,7 +131,7 @@ describe('EventStore', () => {
         ]).then(() => {
           const eventConstructors = new Map();
           eventConstructors.set('CardCreated', CardCreated);
-          const store2 = new EventStore(
+          const store2 = new EventVault(
             store.id,
             FileSystemPersistence,
             eventConstructors
@@ -157,7 +157,7 @@ describe('EventStore', () => {
     });
 
     it('should reject if persistence object is missing on event store', (done) => {
-      const store = new EventStore();
+      const store = new EventVault();
       store.load().then(undefined, (error) => {
         assert.equal(error instanceof Error, true);
         done();
@@ -165,10 +165,10 @@ describe('EventStore', () => {
     });
 
     it('should reject if event constructor is missing in event store', (done) => {
-      const store = new EventStore('shouldLoadWithPersistence', FileSystemPersistence);
+      const store = new EventVault('shouldLoadWithPersistence', FileSystemPersistence);
       store.clear().then(() => {
         store.append(new CardCreated({ name: 'Göran' })).then(() => {
-          const store2 = new EventStore(store.id, FileSystemPersistence, new Map());
+          const store2 = new EventVault(store.id, FileSystemPersistence, new Map());
           store2.load().then(undefined, (error) => {
             assert.equal(error instanceof Error, true);
             assert.equal(store2.events.length, 0);
@@ -180,7 +180,7 @@ describe('EventStore', () => {
   });
 
   describe('#project', () => {
-    const store = new EventStore();
+    const store = new EventVault();
     store.append(new CardCreated({ name: 'Arne', time: 10 }));
     store.append(new CardCreated({ name: 'Grethe', time: 30 }));
     store.append(new CardCreated({ name: 'Lizz', time: 50 }));
