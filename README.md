@@ -5,9 +5,9 @@ An Node.js event sourcing package that lets you store events and create projecti
 
 ## Examples
 
-    const EventVault = require('../EventVault');
-    const Event = require('../Event');
-    const Entity = require('../Entity');
+    const EventVault = require('event-vault/EventVault');
+    const Event = require('event-vault/Event');
+    const Entity = require('event-vault/Entity');
 
     class Player extends Entity {}
 
