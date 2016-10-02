@@ -1,6 +1,6 @@
 {
   "name": "event-vault",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "",
   "main": "EventVault.js",
   "directories": {
@@ -20,6 +20,13 @@
   "bugs": {
     "url": "https://github.com/tirithen/event-vault/issues"
   },
+  "keywords": [
+    "event-sourcing",
+    "event",
+    "event-store",
+    "event sourcing",
+    "immutable"
+  ],
   "homepage": "https://github.com/tirithen/event-vault#readme",
   "devDependencies": {
     "istanbul": "^0.4.5",
